@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+    </application>
+
+    <!--
+      Permisos declarados por Aegis ResQ (ver README, sección «Permisos de Android»).
+      No se declara INTERNET: la app no contacta servidores; todo el contenido se sirve desde el APK.
+      Los plugins añaden por fusión: BLUETOOTH/BLUETOOTH_ADMIN (≤ Android 11), BLUETOOTH_SCAN y
+      BLUETOOTH_CONNECT (Android 12+), ACCESS_FINE/COARSE_LOCATION (escaneo BLE y ubicación bajo demanda)
+      y ACCESS_NETWORK_STATE (estado de la red del sistema).
+    -->
+
+    <!-- Anunciar este nodo como baliza BLE (Android 12+). -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" tools:targetApi="s" />
+    <!-- Recibir mensajes acústicos y señales de prueba; solo con un control visible del usuario. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Necesario para que la WebView configure la captura sin procesado de voz. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+</manifest>

@@ -1,0 +1,60 @@
+<app-page-header title="Diagnóstico técnico" />
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Plataforma y complementos</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p class="small">{{ platform() }}</p>
+      @for (check of checks(); track check.name) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">{{ check.name }}</ion-label>
+          <app-status-badge slot="end" [label]="check.label" />
+        </ion-item>
+      }
+      <ion-button fill="outline" size="small" (click)="runChecks()">Volver a comprobar</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Pruebas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button (click)="runSelfTest()">Ejecutar autoprueba del módem</ion-button>
+      @for (check of selfTest(); track check.name) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">{{ check.name }}</ion-label>
+          <app-status-badge slot="end" [label]="check.label" />
+        </ion-item>
+      }
+      <p class="small muted">
+        La autoprueba valida el códec sin hardware. La transmisión real por aire debe probarse con dos teléfonos
+        (señal de prueba en «Detección acústica»).
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Registro de eventos ({{ log.events().length }})</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button fill="clear" size="small" color="danger" (click)="log.clear()">Borrar registro</ion-button>
+      @for (event of log.events(); track event.id) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">
+            <strong>[{{ event.severity }}] {{ event.category }}</strong>{{ event.simulated ? ' · SIMULADO' : '' }} — {{ event.message }}
+            <p>{{ clock(event.at) }}</p>
+            @if (event.detail) {
+              <p><code>{{ event.detail }}</code></p>
+            }
+          </ion-label>
+        </ion-item>
+      } @empty {
+        <app-empty-state icon="bug" title="Sin eventos registrados" />
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

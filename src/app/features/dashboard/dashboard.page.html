@@ -1,0 +1,101 @@
+<app-page-header title="Inicio" />
+
+<ion-content class="ion-padding">
+  <ion-segment
+    [value]="settings.mode()"
+    (ionChange)="setMode($event.detail.value)"
+    aria-label="Modo de operación"
+  >
+    <ion-segment-button value="real">Modo real</ion-segment-button>
+    <ion-segment-button value="demo">Modo demostración</ion-segment-button>
+  </ion-segment>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Estado de la red</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="label">Red</div>
+          <div class="value"><app-status-badge [label]="networkLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Nodos detectados (alcanzables)</div>
+          <div class="value">{{ discovery.reachableNodes().length }}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Enlaces verificados</div>
+          <div class="value">{{ discovery.verifiedCount() }}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Bluetooth</div>
+          <div class="value"><app-status-badge [label]="bluetoothLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Internet</div>
+          <div class="value"><app-status-badge [label]="networkSystemLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Permisos</div>
+          <div class="value"><app-status-badge [label]="permissionsLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Micrófono</div>
+          <div class="value"><app-status-badge [label]="microphoneLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Nodo seleccionado</div>
+          <div class="value">{{ discovery.selectedNode()?.pseudonym ?? 'Ninguno' }}</div>
+        </div>
+      </div>
+      <p class="muted small">
+        «Internet» refleja solo lo que informa el sistema: estar conectado a una red no garantiza salida a Internet.
+        Las funciones locales no lo necesitan.
+      </p>
+
+      <div class="button-row">
+        <ion-button (click)="toggleDiscovery()" [color]="discovery.isRunning() ? 'danger' : 'secondary'">
+          <ion-icon slot="start" [name]="discovery.isRunning() ? 'stop' : 'play'" aria-hidden="true"></ion-icon>
+          {{ discovery.isRunning() ? 'Detener descubrimiento' : 'Iniciar descubrimiento' }}
+        </ion-button>
+        <ion-button fill="outline" routerLink="/red">Ver dispositivos</ion-button>
+      </div>
+      @if (discovery.lastError(); as error) {
+        <div class="notice" role="alert">{{ error.userMessage }}</div>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Últimos eventos</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (recentEvents().length) {
+        <ion-list lines="inset">
+          @for (event of recentEvents(); track event.id) {
+            <ion-item>
+              <ion-icon
+                slot="start"
+                aria-hidden="true"
+                [name]="event.severity === 'error' ? 'alert-circle' : event.severity === 'warning' ? 'warning' : 'information-circle'"
+              ></ion-icon>
+              <ion-label class="ion-text-wrap">
+                {{ event.message }}
+                <p>
+                  {{ time(event.at) }}
+                  @if (event.simulated) {
+                    · <strong>SIMULADO</strong>
+                  }
+                </p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      } @else {
+        <app-empty-state icon="document-text" title="Aún no hay eventos" hint="Inicia el descubrimiento o una sesión de audio." />
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

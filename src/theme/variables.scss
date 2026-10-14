@@ -1,0 +1,60 @@
+// Paleta Aegis ResQ, tomada del logotipo oficial: morado oscuro y degradado naranja-rojo.
+// Contraste AA: texto blanco sobre primary (15:1) y secondary (5,2:1).
+:root {
+  --ion-color-primary: #2b1838;
+  --ion-color-primary-rgb: 43, 24, 56;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #261531;
+  --ion-color-primary-tint: #402f4c;
+
+  --ion-color-secondary: #c2410c;
+  --ion-color-secondary-rgb: 194, 65, 12;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #ab390b;
+  --ion-color-secondary-tint: #c85424;
+
+  --ion-color-tertiary: #fc731c;
+  --ion-color-tertiary-rgb: 252, 115, 28;
+  --ion-color-tertiary-contrast: #2b1838;
+  --ion-color-tertiary-contrast-rgb: 43, 24, 56;
+  --ion-color-tertiary-shade: #de6519;
+  --ion-color-tertiary-tint: #fc8133;
+
+  --ion-color-success: #1e7f4f;
+  --ion-color-success-rgb: 30, 127, 79;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #1a7046;
+  --ion-color-success-tint: #358c61;
+
+  --ion-color-warning: #b45309;
+  --ion-color-warning-rgb: 180, 83, 9;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #9e4908;
+  --ion-color-warning-tint: #bc6422;
+
+  --ion-color-danger: #b91c1c;
+  --ion-color-danger-rgb: 185, 28, 28;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #a31919;
+  --ion-color-danger-tint: #c03333;
+
+  --ion-color-medium: #5b6577;
+  --ion-color-medium-rgb: 91, 101, 119;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #505969;
+  --ion-color-medium-tint: #6b7485;
+
+  --ion-background-color: #f7f5f9;
+  --ion-text-color: #22132d;
+
+  --aegis-dark: #2b1838;
+  --aegis-orange: #fc731c;
+  --aegis-red: #e8452b;
+  --aegis-card-radius: 14px;
+}

@@ -1,0 +1,117 @@
+<app-page-header title="Permisos y privacidad" />
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Permisos de Android</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="inset">
+        @for (permission of permissions.list(); track permission.kind) {
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h2>{{ permission.label }}</h2>
+              <p>{{ permission.purpose }}</p>
+              <app-status-badge [label]="label(permission.status)" />
+            </ion-label>
+            @if (permission.status === 'prompt' || permission.status === 'prompt-with-rationale') {
+              <ion-button slot="end" size="small" (click)="request(permission.kind)">Solicitar</ion-button>
+            }
+          </ion-item>
+        }
+      </ion-list>
+      <p class="small muted">
+        Si un permiso fue denegado de forma permanente, Android solo permite concederlo desde los ajustes del sistema.
+      </p>
+      <ion-button fill="outline" (click)="openSettings()" [disabled]="!permissions.isNative()">
+        Abrir ajustes de la app
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Configuración de la red</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p class="small">Seudónimo de esta sesión: <strong>{{ identity.pseudonym }}</strong> (aleatorio, cambia en cada arranque).</p>
+      <ion-list lines="inset">
+        <ion-item>
+          <ion-toggle
+            [checked]="settings.settings().acousticParticipation"
+            (ionChange)="set('acousticParticipation', $event.detail.checked)"
+          >
+            <ion-label class="ion-text-wrap">
+              Acepto participar en sesiones acústicas
+              <p>Se anuncia a otros nodos y se responden automáticamente las difusiones con una confirmación.</p>
+            </ion-label>
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-toggle [checked]="settings.settings().relayEnabled" (ionChange)="set('relayEnabled', $event.detail.checked)">
+            <ion-label class="ion-text-wrap">
+              Retransmitir mensajes de otros nodos
+              <p>Repite por el altavoz los mensajes ajenos (máx. 3 saltos, sin duplicados).</p>
+            </ion-label>
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-toggle [checked]="settings.settings().shareBattery" (ionChange)="set('shareBattery', $event.detail.checked)">
+            <ion-label class="ion-text-wrap">
+              Compartir nivel de batería en el anuncio BLE
+              <p>Ayuda a elegir nodos; desactivado por defecto.</p>
+            </ion-label>
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-toggle [checked]="settings.settings().lowPower" (ionChange)="set('lowPower', $event.detail.checked)">
+            <ion-label class="ion-text-wrap">
+              Bajo consumo de Bluetooth
+              <p>Escaneo y anuncio más espaciados: menos batería, detección más lenta.</p>
+            </ion-label>
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-select
+            label="Perfil acústico"
+            labelPlacement="stacked"
+            interface="action-sheet"
+            [value]="settings.settings().modemProfile"
+            (ionChange)="set('modemProfile', $event.detail.value)"
+          >
+            @for (profile of profiles; track profile.id) {
+              <ion-select-option [value]="profile.id">{{ profile.label }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-toggle [checked]="settings.mode() === 'demo'" (ionChange)="setDemo($event.detail.checked)">
+            <ion-label class="ion-text-wrap">
+              Modo demostración
+              <p>Muestra nodos simulados, rotulados como tales. Al cambiar de modo se borra la lista de nodos.</p>
+            </ion-label>
+          </ion-toggle>
+        </ion-item>
+      </ion-list>
+      <p class="small muted">Todos los teléfonos deben usar el mismo perfil acústico para entenderse.</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Privacidad: qué datos se usan</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ul class="small">
+        <li><strong>Sin cuentas:</strong> no hay usuario, contraseña ni datos personales.</li>
+        <li><strong>Audio:</strong> se analiza en memoria mientras el micrófono está activo y se descarta. Nunca se graba ni se envía.</li>
+        <li><strong>Mensajes acústicos:</strong> hasta 32 bytes; se guardan en memoria (máx. 100) y se borran al cerrar la app.</li>
+        <li><strong>Ubicación:</strong> solo al pulsar «Registrar»; en memoria. Se comparte únicamente con confirmación explícita y solo por el canal acústico local.</li>
+        <li><strong>Anuncio BLE:</strong> seudónimo aleatorio, banderas de participación y, si lo autorizas, la batería.</li>
+        <li><strong>Diagnóstico:</strong> registro en memoria (máx. 300 eventos) sin audio ni coordenadas.</li>
+        <li><strong>Preferencias:</strong> los interruptores de esta pantalla se guardan en el almacenamiento local del teléfono.</li>
+        <li><strong>Sin servicios externos:</strong> la app no contacta servidores ni APIs remotas.</li>
+      </ul>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

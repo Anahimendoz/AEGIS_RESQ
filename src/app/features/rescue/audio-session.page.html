@@ -1,0 +1,173 @@
+<app-page-header title="Sesión de audio" />
+
+<ion-content class="ion-padding">
+  <ion-button expand="block" class="stop-all" (click)="stopAll()">
+    <ion-icon slot="start" name="stop-circle" aria-hidden="true"></ion-icon>
+    DETENER TODO (micrófono, emisión y esperas)
+  </ion-button>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Estado del audio</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="label">Permiso de micrófono</div>
+          <div class="value"><app-status-badge [label]="microphonePermission()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Captura</div>
+          <div class="value"><app-status-badge [label]="captureLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Reproducción</div>
+          <div class="value"><app-status-badge [label]="playbackLabel()" /></div>
+        </div>
+        <div class="metric">
+          <div class="label">Perfil acústico</div>
+          <div class="value small">{{ profile().label }}</div>
+        </div>
+      </div>
+      @if (modem.capture() === 'listening') {
+        <p class="small muted">
+          Nivel de entrada: {{ modem.inputLevelDb()?.toFixed(0) }} dBFS · {{ modem.sampleRate() }} Hz
+        </p>
+        <div class="level" aria-hidden="true"><div [style.width.%]="levelPercent()"></div></div>
+      }
+      <div class="button-row">
+        <ion-button (click)="toggleListening()" [color]="modem.capture() === 'listening' ? 'danger' : 'secondary'">
+          <ion-icon slot="start" [name]="modem.capture() === 'listening' ? 'mic-off' : 'mic'" aria-hidden="true"></ion-icon>
+          {{ modem.capture() === 'listening' ? 'Desactivar micrófono' : 'Activar micrófono (recepción)' }}
+        </ion-button>
+        <ion-button fill="outline" (click)="sendTest()">
+          <ion-icon slot="start" name="flask" aria-hidden="true"></ion-icon>
+          Emitir señal de prueba
+        </ion-button>
+      </div>
+      @if (modem.capture() !== 'listening') {
+        <p class="small muted">Sin micrófono activo este teléfono no puede recibir mensajes ni confirmaciones.</p>
+      }
+      @if (error(); as message) {
+        <div class="notice" role="alert">{{ message }}</div>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Enviar mensaje acústico</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-segment [value]="mode()" (ionChange)="setMode($event.detail.value)" aria-label="Modalidad de sesión">
+        <ion-segment-button value="directed">A · Dirigida</ion-segment-button>
+        <ion-segment-button value="broadcast">B · Difusión</ion-segment-button>
+      </ion-segment>
+
+      @if (mode() === 'directed') {
+        <p>
+          Destino:
+          <strong>{{ discovery.selectedNode()?.pseudonym ?? 'ningún nodo seleccionado' }}</strong>
+        </p>
+        <p class="small muted">Requiere confirmación del destino; se reintenta hasta 2 veces.</p>
+      } @else {
+        <p class="small">
+          El sonido llega a la vez a todos los que lo oigan. Solo se listan los nodos que declaran aceptar sesiones acústicas;
+          cada uno confirma por separado.
+        </p>
+        @if (participatingNodes().length) {
+          <ion-list lines="none">
+            @for (node of participatingNodes(); track node.shortId) {
+              <ion-item>
+                <ion-checkbox
+                  [checked]="!excluded().has(node.shortId)"
+                  (ionChange)="toggleRecipient(node.shortId, $event.detail.checked)"
+                >
+                  {{ node.pseudonym }}{{ node.simulated ? ' (simulado: no responderá)' : '' }}
+                </ion-checkbox>
+              </ion-item>
+            }
+          </ion-list>
+        } @else {
+          <p class="small muted">No hay nodos que hayan aceptado participar. La difusión se emitirá sin destinatarios esperados.</p>
+        }
+      }
+
+      <div class="button-row">
+        @for (text of quickMessages; track text) {
+          <ion-button size="small" fill="outline" (click)="send(text)">{{ text }}</ion-button>
+        }
+      </div>
+      <ion-item>
+        <ion-input
+          label="Mensaje libre"
+          labelPlacement="stacked"
+          [ngModel]="customText()"
+          (ngModelChange)="customText.set($event ?? '')"
+          [counter]="false"
+          placeholder="Texto corto"
+        ></ion-input>
+      </ion-item>
+      <p class="small" [class.muted]="customBytes() <= maxBytes">
+        {{ customBytes() }}/{{ maxBytes }} bytes (se recorta si excede)
+      </p>
+      <ion-button (click)="send(customText())" [disabled]="!customText().trim()">
+        <ion-icon slot="start" name="send" aria-hidden="true"></ion-icon>
+        Enviar
+      </ion-button>
+
+      <div class="notice info">
+        <strong>Limitaciones reales del canal:</strong> módem acústico de ~{{ bitRate() }} bit/s, semidúplex (un teléfono emite
+        mientras los demás escuchan). Un mensaje de 16 caracteres tarda ≈ {{ typicalSeconds() }} s. No se transmite voz en vivo:
+        para eso haría falta un enlace de mayor capacidad (p. ej. Wi‑Fi Direct), que este prototipo no implementa.
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Mensajes enviados</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @for (message of outgoing(); track message.key) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">
+            <strong>{{ message.text }}</strong> → {{ destinationName(message) }}
+            <p>{{ statusText(message.status) }} · intento {{ message.attempts }} · {{ time(message.at) }}</p>
+            @if (message.recipients.length) {
+              <div class="recipients">
+                @for (recipient of message.recipients; track recipient.shortId) {
+                  <span>{{ pseudonym(recipient.shortId) }}:</span>
+                  <app-status-badge [label]="recipientLabel(recipient.status)" />
+                }
+              </div>
+            }
+          </ion-label>
+        </ion-item>
+      } @empty {
+        <app-empty-state icon="send" title="Sin mensajes enviados" />
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Mensajes recibidos</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @for (message of incoming(); track message.key) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">
+            <strong>{{ message.text ?? 'Ubicación compartida' }}</strong>
+            <p>
+              De {{ pseudonym(message.source) }} · {{ message.hops }} saltos · relación tono/resto
+              {{ message.toneRatio?.toFixed(1) }} · {{ time(message.at) }}
+            </p>
+          </ion-label>
+        </ion-item>
+      } @empty {
+        <app-empty-state icon="mic" title="Sin mensajes recibidos" hint="Activa el micrófono para escuchar." />
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

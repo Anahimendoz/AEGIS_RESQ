@@ -1,0 +1,86 @@
+<app-page-header title="Ubicación y eventos" />
+
+<ion-content class="ion-padding">
+  <div class="notice">
+    La ubicación que se muestra es la de un <strong>teléfono</strong>, no la de una persona atrapada. Solo se obtiene cuando
+    pulsas el botón, se guarda en memoria y se borra al cerrar la app.
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Ubicación de este teléfono</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="button-row">
+        <ion-button (click)="capture()" [disabled]="location.busy()">
+          <ion-icon slot="start" name="locate" aria-hidden="true"></ion-icon>
+          {{ location.busy() ? 'Obteniendo…' : 'Registrar ubicación actual' }}
+        </ion-button>
+        @if (latestOwn(); as own) {
+          <ion-button fill="outline" (click)="share(own)">
+            <ion-icon slot="start" name="send" aria-hidden="true"></ion-icon>
+            Compartir por canal acústico
+          </ion-button>
+        }
+      </div>
+      @if (error(); as message) {
+        <div class="notice" role="alert">{{ message }}</div>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Observaciones</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @for (observation of location.observations(); track observation.id) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">
+            <strong>{{ coordinates(observation) }}</strong> ± {{ observation.accuracyMeters.toFixed(0) }} m
+            <p>
+              {{ observation.source === 'own-device' ? 'Este teléfono (proveedor del sistema)' : 'Recibida por red acústica' }}
+              · {{ observation.node }} · {{ clock(observation.observedAt) }}
+            </p>
+            <app-status-badge [label]="validityLabel(observation.validity)" />
+          </ion-label>
+        </ion-item>
+      } @empty {
+        <app-empty-state icon="location" title="Sin observaciones" hint="No se generan ubicaciones automáticamente." />
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Estimación acústica de posición</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <app-status-badge [label]="{ text: 'No implementada', icon: 'remove-circle', tone: 'neutral' }" />
+      <p class="small">
+        Estimar dónde está una fuente de sonido con varios teléfonos exige relojes sincronizados al milisegundo,
+        posiciones conocidas de cada micrófono, calibración del retardo de audio de cada modelo y mediciones repetibles.
+        Nada de eso está disponible ni validado aquí, así que la app <strong>no calcula ni muestra coordenadas estimadas</strong>.
+        Ver «Limitaciones» en el README.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Eventos recientes</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @for (event of recentEvents(); track event.id) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">
+            {{ event.message }}
+            <p>{{ event.category }} · {{ time(event.at) }}{{ event.simulated ? ' · SIMULADO' : '' }}</p>
+          </ion-label>
+        </ion-item>
+      } @empty {
+        <app-empty-state icon="document-text" title="Sin eventos" />
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

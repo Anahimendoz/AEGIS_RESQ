@@ -1,0 +1,44 @@
+{
+  "project": {
+    "name": "Aegis ResQ",
+    "institution": "Gimnasio Bilingüe Altamar de Cartagena · Grado 9A",
+    "teacher": "Ricardo Herrera"
+  },
+  "participants": [
+    {
+      "id": "participant-01",
+      "alias": "Nova",
+      "displayName": "Maria Camila Arroyo Mezamell",
+      "avatar": "assets/avatars/nova.png",
+      "role": "Integrante"
+    },
+    {
+      "id": "participant-02",
+      "alias": "Orion",
+      "displayName": "Anahi Sofia Mendoza Tous",
+      "avatar": "assets/avatars/orion.png",
+      "role": "Integrante"
+    },
+    {
+      "id": "participant-03",
+      "alias": "Lyra",
+      "displayName": "Gabriela Merlano Espejo",
+      "avatar": "assets/avatars/lyra.png",
+      "role": "Integrante"
+    },
+    {
+      "id": "participant-04",
+      "alias": "Cosmo",
+      "displayName": "Salomon Vergara Canoa",
+      "avatar": "assets/avatars/cosmo.png",
+      "role": "Integrante"
+    },
+    {
+      "id": "participant-05",
+      "alias": "Vega",
+      "displayName": "Ricardo Herrera",
+      "avatar": "assets/avatars/vega.png",
+      "role": "Docente acompañante"
+    }
+  ]
+}

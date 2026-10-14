@@ -1,0 +1,81 @@
+<app-page-header title="Detección acústica" />
+
+<ion-content class="ion-padding">
+  <div class="notice">
+    <strong>Herramienta experimental de apoyo.</strong> Un micrófono de teléfono no detecta con fiabilidad la presencia de
+    personas a través de escombros: el ruido, la reverberación y los materiales pueden ocultar o imitar señales. Ningún
+    resultado automático significa «persona atrapada»; solo una persona puede confirmarlo.
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Escucha</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="button-row">
+        <ion-button (click)="toggleListening()" [color]="modem.capture() === 'listening' ? 'danger' : 'secondary'">
+          <ion-icon slot="start" [name]="modem.capture() === 'listening' ? 'mic-off' : 'mic'" aria-hidden="true"></ion-icon>
+          {{ modem.capture() === 'listening' ? 'Desactivar micrófono' : 'Activar micrófono' }}
+        </ion-button>
+      </div>
+      @if (error(); as message) {
+        <div class="notice" role="alert">{{ message }}</div>
+      }
+      <ion-item lines="none">
+        <ion-toggle
+          [checked]="detection.knockDetectionEnabled()"
+          (ionChange)="setKnockDetection($event.detail.checked)"
+          [disabled]="modem.capture() !== 'listening'"
+        >
+          Detector experimental de golpes repetidos
+        </ion-toggle>
+      </ion-item>
+      <p class="small muted">
+        Busca ≥ 3 impulsos con intervalos regulares (0,25–2,5 s). No está validado y no informa un nivel de confianza.
+        La voz y los gritos no se clasifican automáticamente: escucha humana.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Modo de prueba acústica</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p class="small">
+        Un teléfono emite una señal conocida; otro, con el micrófono activo, debe recibirla. La señal lleva un CRC: si se
+        recibe, su contenido está verificado. Sirve para medir hasta dónde llega la señal a través de paredes o materiales.
+      </p>
+      <ion-button fill="outline" (click)="sendTest()">
+        <ion-icon slot="start" name="flask" aria-hidden="true"></ion-icon>
+        Emitir señal de prueba
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Eventos de posible señal</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @for (event of detection.events(); track event.id) {
+        <ion-item lines="inset">
+          <ion-label class="ion-text-wrap">
+            <strong>{{ event.description }}</strong>
+            <p>{{ clock(event.at) }} ({{ time(event.at) }}) · receptor {{ event.receiver }}</p>
+            <p>Confianza: {{ event.confidence ?? 'no disponible (detector sin validar)' }}</p>
+            <app-status-badge [label]="reviewLabel(event.review)" />
+            @if (event.review === 'experimental') {
+              <div class="button-row">
+                <ion-button size="small" color="success" (click)="review(event.id, 'confirmed-by-human')">Confirmar (humano)</ion-button>
+                <ion-button size="small" fill="outline" (click)="review(event.id, 'dismissed')">Descartar</ion-button>
+              </div>
+            }
+          </ion-label>
+        </ion-item>
+      } @empty {
+        <app-empty-state icon="pulse" title="Sin detecciones" hint="No se muestra nada que no haya sido detectado realmente." />
+      }
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Aegis ResQ</string>
+    <string name="title_activity_main">Aegis ResQ</string>
+    <string name="package_name">org.aegisresq.app</string>
+    <string name="custom_url_scheme">org.aegisresq.app</string>
+</resources>

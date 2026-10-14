@@ -1,0 +1,102 @@
+<app-page-header title="Red de dispositivos" />
+
+<ion-content class="ion-padding">
+  <div class="button-row">
+    <ion-button (click)="toggleDiscovery()" [color]="discovery.isRunning() ? 'danger' : 'secondary'">
+      <ion-icon slot="start" [name]="discovery.isRunning() ? 'stop' : 'play'" aria-hidden="true"></ion-icon>
+      {{ discovery.isRunning() ? 'Detener descubrimiento' : 'Iniciar descubrimiento' }}
+    </ion-button>
+  </div>
+  <app-status-badge [label]="advertisingLabel()" />
+
+  @if (discovery.lastError(); as error) {
+    <div class="notice" role="alert">{{ error.userMessage }}</div>
+  }
+  <div class="notice info">
+    BLE solo sirve aquí para <strong>descubrir</strong> nodos cercanos con Aegis ResQ. Detectar un nodo no significa que
+    exista un canal de audio: el enlace se considera <strong>verificado</strong> cuando el nodo confirma un mensaje
+    acústico. La intensidad de señal (RSSI) no indica distancia ni ubicación.
+  </div>
+
+  @if (recommendedNode(); as node) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Nodo recomendado</ion-card-subtitle>
+        <ion-card-title>{{ node.pseudonym }} · {{ discovery.scores().get(node.shortId)?.score }}/100</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ul class="reasons">
+          @for (reason of discovery.scores().get(node.shortId)?.reasons; track reason) {
+            <li>{{ reason }}</li>
+          }
+        </ul>
+        <p class="muted small">
+          Es solo una sugerencia: la app no cambia de nodo por su cuenta. Selecciónalo manualmente si quieres usarlo.
+        </p>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  @for (node of discovery.nodes(); track node.shortId) {
+    <ion-card [class.selected]="discovery.selectedId() === node.shortId">
+      <ion-card-header>
+        <div class="node-head">
+          <ion-card-title>{{ node.pseudonym }}</ion-card-title>
+          @if (node.simulated) {
+            <span class="sim">SIMULADO</span>
+          }
+        </div>
+        <app-status-badge [label]="stateLabel(node)" />
+      </ion-card-header>
+      <ion-card-content>
+        <dl>
+          <dt>Última detección</dt>
+          <dd>{{ time(node.lastSeen) }}</dd>
+          <dt>Intensidad BLE</dt>
+          <dd>{{ rssi(node) }}</dd>
+          <dt>Estabilidad</dt>
+          <dd>{{ node.stats.rssiStdDev !== null ? '±' + node.stats.rssiStdDev.toFixed(1) + ' dB' : 'Sin datos suficientes' }}</dd>
+          <dt>Anuncios/s</dt>
+          <dd>{{ node.stats.advertisementsPerSecond.toFixed(1) }}</dd>
+          <dt>Canal acústico</dt>
+          <dd>
+            @if (node.stats.acousticSent) {
+              {{ node.stats.acousticAcked }}/{{ node.stats.acousticSent }} confirmados
+              @if (node.stats.lastRoundTripMs !== null) {
+                · {{ (node.stats.lastRoundTripMs / 1000).toFixed(1) }} s
+              }
+            } @else {
+              Sin probar
+            }
+          </dd>
+          <dt>Batería</dt>
+          <dd>{{ node.batteryLevel !== null ? node.batteryLevel + ' %' : 'No compartida' }}</dd>
+          <dt>Declara</dt>
+          <dd>
+            {{ node.capabilities.relayEnabled ? 'Retransmite' : 'No retransmite' }} ·
+            {{ node.capabilities.acousticParticipation ? 'Acepta sesiones acústicas' : 'No acepta sesiones' }}
+          </dd>
+        </dl>
+        <div class="button-row">
+          <ion-button size="small" [fill]="discovery.selectedId() === node.shortId ? 'solid' : 'outline'" (click)="select(node)">
+            {{ discovery.selectedId() === node.shortId ? 'Seleccionado' : 'Seleccionar' }}
+          </ion-button>
+          <ion-button size="small" fill="clear" [disabled]="node.state === 'out-of-range'" (click)="openAudioSession(node)">
+            <ion-icon slot="start" name="send" aria-hidden="true"></ion-icon>
+            Sesión acústica
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  } @empty {
+    <app-empty-state
+      icon="bluetooth"
+      title="Ningún nodo detectado"
+      [hint]="
+        discovery.isRunning()
+          ? 'Buscando… Otros teléfonos deben tener Aegis ResQ abierto con el descubrimiento iniciado.'
+          : 'Inicia el descubrimiento para buscar nodos cercanos.'
+      "
+    />
+  }
+</ion-content>
